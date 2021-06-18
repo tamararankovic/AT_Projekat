@@ -27,9 +27,10 @@ public class MDBConsumer implements MessageListener {
 			ACLMessage agentMessage = (ACLMessage) ((ObjectMessage) message).getObject();
 			for(AID aid : agentMessage.getReceivers()) {
 				Agent agent = agentManager.getRunningAgentByAID(aid);
-				if (agent != null)
-					agent.handleMessage(agentMessage);
+				if (agent != null) {
 					log(agentMessage);
+					agent.handleMessage(agentMessage);
+				}
 			}
 		} catch (JMSException e) {
 			e.printStackTrace();

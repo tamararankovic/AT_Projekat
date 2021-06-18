@@ -34,13 +34,15 @@ public class AgentManagerBean implements AgentManagerRemote {
 	
 	@Override
 	public void startAgent(AgentType type, String name) {
-		if(getAgentTypes().contains(type)) {
+		if(getAgentTypes().stream().anyMatch(t -> t.equals(type))) {
 			Agent agent = (Agent) JNDILookup.lookUp(type.getModule() + type.getName() + "!"
 									+ Agent.class.getName() + "?stateful", Agent.class);
 			if(agent != null) {
 				agent.init(new AID(name, acm.getLocalNodeInfo(), type));
-				runningAgents.add(agent);
-				updateViaSocket();
+				if(runningAgents.stream().noneMatch(a -> a.getAID().equals(agent.getAID()))) {
+					runningAgents.add(agent);
+					updateViaSocket();
+				}
 			}
 		}
 	}

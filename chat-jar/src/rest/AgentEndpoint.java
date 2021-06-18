@@ -3,7 +3,6 @@ package rest;
 import java.util.Set;
 
 import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -33,7 +32,7 @@ public interface AgentEndpoint {
 	@Consumes(MediaType.APPLICATION_JSON)
 	public void startAgent(AgentType type, @PathParam("name") String name);
 	
-	@DELETE
+	@PUT
 	@Path("/running")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public void stopAgent(AID aid);

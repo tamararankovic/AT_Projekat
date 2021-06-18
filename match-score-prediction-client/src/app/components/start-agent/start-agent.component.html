@@ -1,0 +1,17 @@
+<div style="width: 100%; height: max-content;">
+  <div style="width: 100%;">
+    <mat-form-field appearance="fill" style="width: 100%;">
+      <mat-label>Select agent type</mat-label>
+      <mat-select [(value)]="type">
+        <mat-option [value]="t" *ngFor="let t of types">{{t.module}}@{{t.name}}</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <div style="width: 100%;">
+    <mat-form-field style="width: 100%;">
+      <mat-label>Agent name</mat-label>
+      <input matInput id="nameInput" #name = "ngModel" name="c1" [(ngModel)] = "agentName"/>
+    </mat-form-field>
+  </div>
+  <button mat-stroked-button (click)="start()" style="margin-left: 40%; width: 20%;">Start</button>
+</div>

@@ -1,0 +1,43 @@
+<mat-form-field appearance="fill" style="width: 100%;">
+    <mat-label>Sender</mat-label>
+    <mat-select [(value)]="sender">
+      <mat-option [value]="agent" *ngFor="let agent of agents">{{agent.name}} - {{agent.type.module}}@{{agent.type.name}}</mat-option>
+    </mat-select>
+</mat-form-field>
+<mat-form-field appearance="fill" style="width: 100%;">
+    <mat-label>Receiver</mat-label>
+    <mat-select [(value)]="receiver">
+      <mat-option [value]="agent" *ngFor="let agent of agents">{{agent.name}} - {{agent.type.module}}@{{agent.type.name}}</mat-option>
+    </mat-select>
+</mat-form-field>
+<mat-form-field appearance="fill" style="width: 100%;">
+    <mat-label>Performative</mat-label>
+    <mat-select [(value)]="performative">
+      <mat-option [value]="p" *ngFor="let p of performatives">{{p}}</mat-option>
+    </mat-select>
+</mat-form-field>
+<mat-form-field style="width: 100%;" *ngIf="performative != 'SEND_MESSAGE_ALL' && performative != 'SEND_MESSAGE_USER' && performatives.includes(performative)">
+    <mat-label>Username</mat-label>
+    <input matInput id="user" #name = "ngModel" name="c1" [(ngModel)] = "username"/>
+</mat-form-field>
+<mat-form-field style="width: 100%;" *ngIf="performative === 'LOG_IN' || performative === 'REGISTER'">
+    <mat-label>Password</mat-label>
+    <input matInput type="password" id="pass" #name2 = "ngModel" name="c2" [(ngModel)] = "password"/>
+</mat-form-field>
+<mat-form-field style="width: 100%;" *ngIf="performative === 'SEND_MESSAGE_ALL' || performative === 'SEND_MESSAGE_USER'">
+  <mat-label>Sender</mat-label>
+  <input matInput id="s" #name3 = "ngModel" name="c3" [(ngModel)] = "senderUsername"/>
+</mat-form-field>
+<mat-form-field style="width: 100%;" *ngIf="performative === 'SEND_MESSAGE_USER'">
+  <mat-label>Receiver</mat-label>
+  <input matInput id="rec" #name4 = "ngModel" name="c4" [(ngModel)] = "receiverUsername"/>
+</mat-form-field>
+<mat-form-field style="width: 100%;" *ngIf="performative === 'SEND_MESSAGE_ALL' || performative === 'SEND_MESSAGE_USER'">
+  <mat-label>Subject</mat-label>
+  <input matInput id="sub" #name5 = "ngModel" name="c5" [(ngModel)] = "subject"/>
+</mat-form-field>
+<mat-form-field style="width: 100%;" *ngIf="performative === 'SEND_MESSAGE_ALL' || performative === 'SEND_MESSAGE_USER'">
+  <mat-label>Content</mat-label>
+  <input matInput id="con" #name6 = "ngModel" name="c6" [(ngModel)] = "content"/>
+</mat-form-field>
+<button mat-stroked-button (click)="send()" style="margin-left: 40%; width: 20%;">Send</button>

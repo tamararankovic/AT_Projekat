@@ -27,6 +27,8 @@ public class ACLMessage implements Serializable {
 	private String inReplyTo;
 	private long replyBy;
 	
+	public ACLMessage() { }
+	
 	public ACLMessage(Performative performative, AID sender, Set<AID> receivers, AID replyTo, String content,
 			Object contentObj, HashMap<String, Object> userArgs, String language, String encoding, String ontology,
 			String protocol, String conversationId, String replyWith, String inReplyTo, long replyBy) {

@@ -41,7 +41,6 @@ public class MessageManagerBean implements MessageManagerRemote {
 	public void post(ACLMessage message) {
 		try {
 			defaultProducer.send(createJMSMessage(message));
-			System.out.println("Entered message manager");
 		} catch (JMSException e) {
 			e.printStackTrace();
 		}

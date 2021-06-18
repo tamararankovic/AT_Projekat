@@ -58,6 +58,8 @@ private Set<Session> sessions = new HashSet<Session>();
 		sb.append(message.getContent());
 		sb.append(" PERFORMATIVE: ");
 		sb.append(message.getPerformative().toString());
+		sb.append(" USER ARGS: ");
+		sb.append(message.getUserArgs().toString());
 		return sb.toString();
 	}
 }
