@@ -1,15 +1,24 @@
 package agentmanager;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import javax.ejb.EJB;
 import javax.ejb.LocalBean;
 import javax.ejb.Remote;
 import javax.ejb.Singleton;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import agents.AID;
 import agents.Agent;
+import agents.AgentType;
+import agents.UserAgent;
+import util.AgentCenterManager;
 import util.JNDILookup;
+import websocket.AgentSocket;
 
 @Singleton
 @Remote(AgentManagerRemote.class)
@@ -18,27 +27,55 @@ public class AgentManagerBean implements AgentManagerRemote {
 
 	private static final long serialVersionUID = 1L;
 	
-	Map<String, Agent> runningAgents = new HashMap<String, Agent>();
+	Set<Agent> runningAgents = new HashSet<Agent>();
+	
+	@EJB AgentCenterManager acm;
+	@EJB AgentSocket socket;
 	
 	@Override
-	public void startAgent(String agentId, String name) {
-		Agent agent = (Agent) JNDILookup.lookUp(name, Agent.class);
-		agent.init(agentId);
-		runningAgents.put(agentId, agent);
+	public void startAgent(AgentType type, String name) {
+		if(getAgentTypes().contains(type)) {
+			Agent agent = (Agent) JNDILookup.lookUp(type.getModule() + type.getName() + "!"
+									+ Agent.class.getName() + "?stateful", Agent.class);
+			if(agent != null) {
+				agent.init(new AID(name, acm.getLocalNodeInfo(), type));
+				runningAgents.add(agent);
+				updateViaSocket();
+			}
+		}
 	}
 
 	@Override
-	public void stopAgent(String agentId) {
-		runningAgents.remove(agentId);
+	public void stopAgent(AID aid) {
+		runningAgents.removeIf(a -> a.getAID().equals(aid));
+		updateViaSocket();
 	}
 
 	@Override
-	public List<Agent> getRunningAgents() {
-		return (List<Agent>) runningAgents.values();
+	public Agent getRunningAgentByAID(AID aid) {
+		return runningAgents.stream().filter(a -> a.getAID().equals(aid)).findFirst().orElse(null);
+	}
+	
+	@Override
+	public Set<AID> getRunningAgents() {
+		return runningAgents.stream().map(a -> a.getAID()).collect(Collectors.toSet());
 	}
 
 	@Override
-	public Agent getRunningAgentByid(String agentId) {
-		return runningAgents.get(agentId);
+	public Set<AgentType> getAgentTypes() {
+		Set<AgentType> types = new HashSet<AgentType>();
+		types.add(new AgentType(UserAgent.class.getSimpleName(), JNDILookup.JNDIPathChat));
+		return types;
+	}
+	
+	private void updateViaSocket() {
+	    try {
+	    	Set<AID> agents = getRunningAgents();
+			ObjectMapper mapper = new ObjectMapper();
+			String agentsJSON = mapper.writeValueAsString(agents);
+			socket.send(agentsJSON);
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		}
 	}
 }

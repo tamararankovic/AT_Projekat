@@ -10,9 +10,9 @@ import model.User;
 @Remote
 public interface ChatManagerRemote {
 
-	public boolean register(User user);
+	public boolean register(String username, String password);
 	
-	public boolean logIn(User user, String identifier);
+	public boolean logIn(String username, String password);
 	
 	public boolean logOut(String username);
 	
@@ -20,25 +20,11 @@ public interface ChatManagerRemote {
 	
 	public List<User> getLoggedIn();
 	
-	public List<User> getLocallyLoggedIn();
-	
-	public List<User> getLoggedInByHost(String host);
-	
-	public void deleteLoggedInByHost(String host);
-	
-	public void saveMessage(Message message);
+	public Message saveMessage(String sender, String receiver, String subject, String content);
 	
 	public List<Message> getMessages(String username);
 	
-	public List<Message> getMessages();
+	public boolean existsLoggedIn(String username);
 	
-	public User getRegistered(String username);
-
-	public User getLoggedIn(String identifier);
-	
-	public void syncLoggedIn(String alias, List<User> users);
-	
-	public void syncRegistered(List<User> users);
-	
-	public List<Message> syncMessages(List<Message> messages);
+	public boolean existsRegistered(String username);
 }

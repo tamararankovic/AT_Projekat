@@ -1,6 +1,6 @@
 package messagemanager;
 
-public enum AgentMessageType {
+public enum Performative {
 
 	REGISTER,
 	LOG_IN,

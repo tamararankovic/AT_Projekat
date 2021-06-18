@@ -31,13 +31,13 @@ public class WebSocket {
 	private Map<Session, String> sessions = new HashMap<Session, String>();
 	
 	protected AgentManagerRemote agm() {
-		return JNDILookup.lookUp(JNDILookup.AgentManagerLookup, AgentManagerBean.class);
+		return null; //JNDILookup.lookUp(JNDILookup.AgentManagerLookup, AgentManagerBean.class);
 	}
 	
 	protected ChatManagerRemote chm() {
-		return JNDILookup.lookUp(JNDILookup.ChatManagerLookup, ChatManagerBean.class);
+		return null; //JNDILookup.lookUp(JNDILookup.ChatManagerLookup, ChatManagerBean.class);
 	}
-
+/*
 	@OnOpen
 	public void onOpen(Session session, EndpointConfig c, @PathParam("identifier") String identifier) {
 		System.out.println("usao u websocket");
@@ -203,5 +203,5 @@ public class WebSocket {
 		messageText.append(message.getCreated());
 		messageText.append("\" }");
 		return messageText.toString();
-	}
+	}*/
 }

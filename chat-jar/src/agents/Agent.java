@@ -4,14 +4,14 @@ import java.io.Serializable;
 
 import javax.ejb.Remote;
 
-import messagemanager.AgentMessage;
+import messagemanager.ACLMessage;
 
 @Remote
 public interface Agent extends Serializable {
 
-	public void init(String agentId);
+	public void handleMessage(ACLMessage message);
 	
-	public void handleMessage(AgentMessage message);
+	public void init(AID aid);
 	
-	public String getAgentId();
+	public AID getAID();
 }

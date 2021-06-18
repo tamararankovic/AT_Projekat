@@ -1,165 +1,172 @@
 package agents;
 
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 import java.util.List;
-import java.util.UUID;
 
 import javax.ejb.EJB;
 import javax.ejb.Remote;
 import javax.ejb.Stateful;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import chatmanager.ChatManagerRemote;
-import connectionmanager.ConnectionManagerBean;
-import messagemanager.AgentMessage;
-import messagemanager.AgentMessageType;
+import messagemanager.ACLMessage;
+import model.Message;
 import model.User;
-import websocket.WebSocket;
+import websocket.Logger;
 
 @Stateful
 @Remote(Agent.class)
-public class UserAgent implements Agent {
+public class UserAgent extends BaseAgent {
 
 	private static final long serialVersionUID = 1L;
 	
-	private String agentId;
+	@EJB ChatManagerRemote chm;
+	@EJB Logger logger;
 	
-	@EJB private ChatManagerRemote chatManager;
-	@EJB WebSocket ws;
-	@EJB ConnectionManagerBean cm;
-
 	@Override
-	public void init(String agentId) {
-		this.agentId = agentId;
-	}
-
-	@Override
-	public void handleMessage(AgentMessage message) {
-		System.out.println("entered agent");
-		AgentMessageType type = message.getType();
-		switch (type) {
-			case LOG_IN: {
-				String username = message.getAttributes().get("username");
-				String password = message.getAttributes().get("password");
-				logIn(username, password);
-				break;
-			}
-			case REGISTER: {
-				String username = message.getAttributes().get("username");
-				String password = message.getAttributes().get("password");
-				register(username, password);
-				break;
-			}
-			case LOG_OUT: {
-				String identifier = message.getAttributes().get("identifier");
-				logOut(identifier);
-				break;
-			}
-			case REGISTERED_LIST: {
-				getRegistered();
-				break;
-			}
-			case LOGGED_IN_LIST: {
-				getLoggedIn();
-				break;
-			}
-			case SEND_MESSAGE_ALL: {
-				String subject = message.getAttributes().get("subject");
-				String content = message.getAttributes().get("content");
-				sendMessageToAll(subject, content);
-				break;
-			}
-			case SEND_MESSAGE_USER: {
-				String receiver = message.getAttributes().get("receiver");
-				String subject = message.getAttributes().get("subject");
-				String content = message.getAttributes().get("content");
-				sendMessage(receiver, subject, content);
-				break;
-			}
-			case GET_MESSAGES: {
-				getAllMessages();
-				break;
-			}
+	public void handleMessage(ACLMessage message) {
+		switch(message.getPerformative()) {
+		case LOG_IN: {
+			String username = message.getUserArg("username").toString();
+			String password = message.getUserArg("password").toString();
+			logIn(username, password);
+			break;
+		}
+		case REGISTER: {
+			String username = message.getUserArg("username").toString();
+			String password = message.getUserArg("password").toString();
+			register(username, password);
+			break;
+		}
+		case LOG_OUT: {
+			String username = message.getUserArg("username").toString();
+			logOut(username);
+			break;
+		}
+		case REGISTERED_LIST: {
+			String username = message.getUserArg("username").toString();
+			getRegistered(username);
+			break;
+		}
+		case LOGGED_IN_LIST: {
+			String username = message.getUserArg("username").toString();
+			getLoggedIn(username);
+			break;
+		}
+		case SEND_MESSAGE_ALL: {
+			String subject = message.getUserArg("subject").toString();
+			String content = message.getUserArg("content").toString();
+			String sender = message.getUserArg("sender").toString();
+			sendMessageToAll(sender, subject, content);
+			break;
+		}
+		case SEND_MESSAGE_USER: {
+			String subject = message.getUserArg("subject").toString();
+			String content = message.getUserArg("content").toString();
+			String sender = message.getUserArg("sender").toString();
+			String receiver = message.getUserArg("receiver").toString();
+			sendMessage(sender, receiver, subject, content);
+			break;
+		}
+		case GET_MESSAGES: {
+			String username = message.getUserArg("username").toString();
+			getAllMessages(username);
+			break;
+		}
 		}
 	}
-
-	@Override
-	public String getAgentId() {
-		return agentId;
-	}
-
+	
 	private void logIn(String username, String password) {
-		String currentUsername = ws.getUsernameBoundToSession(agentId);
-		if(currentUsername == null) {
-			String identifier = UUID.randomUUID().toString();
-			if (chatManager.logIn(new User(username, password), identifier)) {
-				ws.bindUsernameToSession(username, agentId);
-				ws.send(agentId, "login:OK " + identifier);
-				ws.sendToAllLoggedIn(ws.getLoggedInListTextMessage(chatManager.getLoggedIn()));
-				cm.postLoggedIn();
-			} else {
-				ws.send(agentId, "login:Logging in was unsuccessful! Incorrect username or password");
-			}
-		} else {
-			ws.send(agentId, "login:You are already logged in!");
-		}
-	}
-	
-	private void logOut(String identifier) {
-		User user = chatManager.getLoggedIn(identifier);
-		if(user != null && user.getUsername().equals(ws.getUsernameBoundToSession(agentId)) && chatManager.logOut(identifier)) {
-			ws.unbindUsernameFromSession(agentId);
-			ws.send(agentId, "logout:OK");
-			ws.sendToAllLoggedIn(ws.getLoggedInListTextMessage(chatManager.getLoggedIn()));
-			cm.postLoggedIn();
-		} else {
-			ws.send(agentId, "logout:Logging out was unsuccessful!");
-		}
+		boolean success = chm.logIn(username, password);
+		if(success)
+			logger.send("User with username " + username + " successfully logged in");
+		else
+			logger.send("User with username " + username + " doesn't exist or the password is incorrect");
 	}
 	
 	private void register(String username, String password) {
-		if(chatManager.register(new User(username, password))) {
-			ws.send(agentId, "register:Registration was successful!");
-			ws.sendToAllLoggedIn(ws.getRegisteredListTextMessage(chatManager.getRegistered()));
-			cm.postRegistered();
-		} else {
-			ws.send(agentId, "register:Registration was unsuccessful! Try another username");
+		boolean success = chm.register(username, password);
+		if(success)
+			logger.send("User with username " + username + " successfully registered");
+		else
+			logger.send("User with username " + username + " already exists");
+	}
+	
+	private void logOut(String username) {
+		if(loggedIn(username)) {
+			chm.logOut(username);
+			logger.send("User with username " + username + " successfully logged out");
 		}
 	}
 	
-	private void getLoggedIn() {
-		if(ws.getUsernameBoundToSession(agentId) != null)
-			ws.send(agentId, ws.getLoggedInListTextMessage(chatManager.getLoggedIn()));
-	}
-	
-	private void getRegistered() {
-		if(ws.getUsernameBoundToSession(agentId) != null)
-			ws.send(agentId, ws.getRegisteredListTextMessage(chatManager.getRegistered()));
-	}
-	
-	private void getAllMessages() {
-		String username = ws.getUsernameBoundToSession(agentId);
-		if(username != null)
-			ws.send(agentId, ws.getMessageListTextMessage(chatManager.getMessages(username), username));
-	}
-	
-	private void sendMessage(String receiverUsername, String subject, String content) {
-		String username = ws.getUsernameBoundToSession(agentId);
-		if(chatManager.getRegistered(receiverUsername) != null && username != null) {
-			User receiver = chatManager.getRegistered(receiverUsername);
-			User sender = chatManager.getRegistered(username);
-			model.Message message = new model.Message(sender, receiver, LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS), subject, content);
-			chatManager.saveMessage(message);
-			ws.sendToOneLoggedIn(receiverUsername, ws.getMessageTextMessage(message));
-			ws.send(agentId, ws.getMessageListTextMessage(chatManager.getMessages(username), username));
-			cm.postMessages();
+	private void getLoggedIn(String username) {
+		if(loggedIn(username)) {
+			List<User> users = chm.getLoggedIn();
+			ObjectMapper mapper = new ObjectMapper();
+			try {
+				String usersJSON = mapper.writeValueAsString(users);
+				logger.send("Logged in users: " + usersJSON);
+			} catch (JsonProcessingException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	
-	private void sendMessageToAll(String subject, String content) {
-		List<User> loggedInUsers = chatManager.getLoggedIn();
-		for(User user : loggedInUsers)
-			sendMessage(user.getUsername(), subject, content);
+	private void getRegistered(String username) {
+		if(loggedIn(username)) {
+			List<User> users = chm.getRegistered();
+			ObjectMapper mapper = new ObjectMapper();
+			try {
+				String usersJSON = mapper.writeValueAsString(users);
+				logger.send("Registered users: " + usersJSON);
+			} catch (JsonProcessingException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	private void sendMessage(String sender, String receiver, String subject, String content) {
+		if(loggedIn(sender)) {
+			if(!chm.existsRegistered(receiver)) {
+				logger.send("Reciever with username " + receiver + " doesn't exist");
+				return;
+			}
+			Message message = chm.saveMessage(sender, receiver, subject, content);
+			ObjectMapper mapper = new ObjectMapper();
+			try {
+				String messageJSON = mapper.writeValueAsString(message);
+				logger.send("Message: " + messageJSON + " sent");
+			} catch (JsonProcessingException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	private void sendMessageToAll(String sender, String subject, String content) {
+		if(loggedIn(sender))
+			for(User user : chm.getLoggedIn())
+				sendMessage(sender, user.getUsername(), subject, content);
+	}
+	
+	private void getAllMessages(String username) {
+		if(loggedIn(username)) {
+			List<Message> messages = chm.getMessages(username);
+			ObjectMapper mapper = new ObjectMapper();
+			try {
+				String messagesJSON = mapper.writeValueAsString(messages);
+				logger.send("Messages for user with username " + username + ": " + messagesJSON);
+			} catch (JsonProcessingException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	private boolean loggedIn(String username) {
+		if(!chm.existsLoggedIn(username)) {
+			logger.send("User with username " + username + " is not logged in");
+			return false;
+		}
+		return true;
 	}
 }

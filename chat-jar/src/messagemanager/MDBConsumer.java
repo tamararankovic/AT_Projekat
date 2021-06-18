@@ -9,7 +9,9 @@ import javax.jms.MessageListener;
 import javax.jms.ObjectMessage;
 
 import agentmanager.AgentManagerRemote;
+import agents.AID;
 import agents.Agent;
+import websocket.Logger;
 
 @MessageDriven(activationConfig = {
 		@ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
@@ -17,19 +19,25 @@ import agents.Agent;
 public class MDBConsumer implements MessageListener {
 
 	@EJB private AgentManagerRemote agentManager;
+	@EJB private Logger logger;
 	
 	@Override
 	public void onMessage(Message message) {
 		try {
-			AgentMessage agentMessage = (AgentMessage) ((ObjectMessage) message).getObject();
-			Agent agent = agentManager.getRunningAgentByid(agentMessage.getSender());
-			System.out.println("agent: " + agent);
-			System.out.println("id: " + agentMessage.getSender());
-			if (agent != null)
-				agent.handleMessage(agentMessage);
+			ACLMessage agentMessage = (ACLMessage) ((ObjectMessage) message).getObject();
+			for(AID aid : agentMessage.getReceivers()) {
+				Agent agent = agentManager.getRunningAgentByAID(aid);
+				if (agent != null)
+					agent.handleMessage(agentMessage);
+					log(agentMessage);
+			}
 		} catch (JMSException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	private void log(ACLMessage message) {
+		logger.send(logger.ACLToString(message));
 	}
 
 }

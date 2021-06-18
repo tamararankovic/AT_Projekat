@@ -1,17 +1,21 @@
 package agentmanager;
 
 import java.io.Serializable;
-import java.util.List;
+import java.util.Set;
 
+import agents.AID;
 import agents.Agent;
+import agents.AgentType;
 
 public interface AgentManagerRemote extends Serializable {
 
-	public void startAgent(String agentId, String name);
+	public void startAgent(AgentType type, String name);
 	
-	public void stopAgent(String agentId);
+	public void stopAgent(AID aid);
 	
-	public List<Agent> getRunningAgents();
+	public Set<AID> getRunningAgents();
 	
-	public Agent getRunningAgentByid(String agentId);
+	public Set<AgentType> getAgentTypes();
+	
+	public Agent getRunningAgentByAID(AID aid);
 }

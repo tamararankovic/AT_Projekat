@@ -1,5 +1,8 @@
 package messagemanager;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.ejb.EJB;
@@ -35,7 +38,7 @@ public class MessageManagerBean implements MessageManagerRemote {
 	}
 
 	@Override
-	public void post(AgentMessage message) {
+	public void post(ACLMessage message) {
 		try {
 			defaultProducer.send(createJMSMessage(message));
 			System.out.println("Entered message manager");
@@ -44,7 +47,7 @@ public class MessageManagerBean implements MessageManagerRemote {
 		}
 	}
 	
-	private Message createJMSMessage(AgentMessage message) {
+	private Message createJMSMessage(ACLMessage message) {
 		ObjectMessage jmsMessage = null;
 		try {
 			jmsMessage = session.createObjectMessage(message);
@@ -52,5 +55,13 @@ public class MessageManagerBean implements MessageManagerRemote {
 			e.printStackTrace();
 		}
 		return jmsMessage;
+	}
+
+	@Override
+	public Set<String> getPerformatives() {
+		Set<String> result = new HashSet<String>();
+		for(Performative p : Performative.values())
+			result.add(p.toString());
+		return result;
 	}
 }

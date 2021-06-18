@@ -1,28 +1,15 @@
 package connectionmanager;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.ejb.EJB;
 import javax.ejb.LocalBean;
 import javax.ejb.Remote;
-import javax.ejb.Schedule;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
-import javax.management.AttributeNotFoundException;
-import javax.management.InstanceNotFoundException;
-import javax.management.MBeanException;
-import javax.management.MBeanServer;
-import javax.management.MalformedObjectNameException;
-import javax.management.ObjectName;
-import javax.management.ReflectionException;
 import javax.ws.rs.Path;
 
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
@@ -30,9 +17,7 @@ import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 
 import chatmanager.ChatManagerRemote;
-import model.Host;
-import model.User;
-import util.ResourceLoader;
+import util.AgentCenterManager;
 import websocket.WebSocket;
 
 @Singleton
@@ -42,17 +27,19 @@ import websocket.WebSocket;
 @Path("/connection")
 public class ConnectionManagerBean implements ConnectionManager {
 
-	private Host localNode;
+	private AgentCenter host;
+	private String masterAlias;
 	private List<String> connectedNodes = new ArrayList<String>();
 	
 	@EJB ChatManagerRemote chm;
 	@EJB WebSocket ws;
+	@EJB AgentCenterManager acm;
 	
 	@PostConstruct
 	private void init() {
-		getLocalNodeInfo();
+		getLocalNodeInfo();/*
 		if(!localNode.isMaster())
-			handshake();
+			handshake();*/
 	}
 	
 	@Override
@@ -64,7 +51,7 @@ public class ConnectionManagerBean implements ConnectionManager {
 			ConnectionManager rest = rtarget.proxy(ConnectionManager.class);
 			rest.addNode(nodeAlias);
 			client.close();
-		}
+		}/*
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
@@ -95,10 +82,10 @@ public class ConnectionManagerBean implements ConnectionManager {
 					}
 				}
 			}
-		}).start();
+		}).start();*/
 		try {
 			List<String> returnNodes = new ArrayList<String>(connectedNodes);
-			returnNodes.add(localNode.getAlias());
+			returnNodes.add(host.getAlias());
 			connectedNodes.add(nodeAlias);
 			return returnNodes;
 		} catch (Exception e) {
@@ -106,7 +93,7 @@ public class ConnectionManagerBean implements ConnectionManager {
 			try {
 				connectedNodes.remove(nodeAlias);
 				List<String> returnNodes = new ArrayList<String>(connectedNodes);
-				returnNodes.add(localNode.getAlias());
+				returnNodes.add(host.getAlias());
 				connectedNodes.add(nodeAlias);
 				return returnNodes;
 			} catch (Exception e1) {
@@ -128,8 +115,8 @@ public class ConnectionManagerBean implements ConnectionManager {
 	public void deleteNode(String alias) {
 		System.out.println("Deleting node with alias: " + alias);
 		connectedNodes.remove(alias);
-		chm.deleteLoggedInByHost(alias);
-		ws.sendToAllLoggedIn(ws.getLoggedInListTextMessage(chm.getLoggedIn()));
+		//chm.deleteLoggedInByHost(alias);
+		//ws.sendToAllLoggedIn(ws.getLoggedInListTextMessage(chm.getLoggedIn()));
 	}
 
 	@Override
@@ -139,56 +126,21 @@ public class ConnectionManagerBean implements ConnectionManager {
 	}
 	
 	private void getLocalNodeInfo() {
-		String nodeAddress = getNodeAddress();
-		String nodeAlias = getNodeAlias() + ":8080";
-		String masterAlias = getMasterAlias();
-		localNode = new Host(nodeAddress, nodeAlias, masterAlias);
-		System.out.println("node alias: " + localNode.getAlias() + ", node address: " + 
-		localNode.getAddress() + ", master alias: " + 
-		localNode.getMasterAlias());
-	}
-	
-	private String getMasterAlias() {
-		try {
-			File f = ResourceLoader.getFile(ConnectionManager.class, "", "connection.properties");
-			FileInputStream fileInput = new FileInputStream(f);
-			Properties properties = new Properties();
-			properties.load(fileInput);
-			fileInput.close();
-			return properties.getProperty("master");
-		} catch (IOException e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
-	
-	private String getNodeAddress() {
-		try {
-			MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
-			ObjectName http = new ObjectName("jboss.as:socket-binding-group=standard-sockets,socket-binding=http");
-			return (String) mBeanServer.getAttribute(http, "boundAddress");
-		} catch (MalformedObjectNameException | InstanceNotFoundException | AttributeNotFoundException | ReflectionException | MBeanException e) {
-			e.printStackTrace();
-			return null;
-		}
-		
-	}
-	
-	private String getNodeAlias() {
-		return System.getProperty("jboss.node.name");
+		host = acm.getLocalNodeInfo();
+		masterAlias = acm.getMasterAlias();
 	}
 	
 	private void handshake() {
-		System.out.println("Initiating a handshake, master: " + localNode.getMasterAlias());
+		System.out.println("Initiating a handshake, master: " + masterAlias);
 		ResteasyClient client = new ResteasyClientBuilder().build();
-		ResteasyWebTarget rtarget = client.target("http://" + localNode.getMasterAlias() + "/chat-war/rest/connection");
+		ResteasyWebTarget rtarget = client.target("http://" + masterAlias + "/chat-war/rest/connection");
 		ConnectionManager rest = rtarget.proxy(ConnectionManager.class);
-		connectedNodes = rest.registerNode(localNode.getAlias());
+		connectedNodes = rest.registerNode(host.getAlias());
 		client.close();
 		System.out.println("Handshake successful. Connected nodes: " + connectedNodes);
 	}
 	
-	@Schedule(hour = "*", minute="*", second="*/120", persistent=false)
+	//@Schedule(hour = "*", minute="*", second="*/120", persistent=false)
 	private void heartbeat() {
 		System.out.println("Heartbeat protocol initiated");
 		for(String node : connectedNodes) {
@@ -232,7 +184,7 @@ public class ConnectionManagerBean implements ConnectionManager {
 	
 	@PreDestroy
 	private void shutDown() {
-		instructNodesToDeleteNode(localNode.getAlias());
+		//instructNodesToDeleteNode(localNode.getAlias());
 	}
 	
 	private void instructNodesToDeleteNode(String nodeAlias) {
@@ -244,7 +196,7 @@ public class ConnectionManagerBean implements ConnectionManager {
 			client.close();
 		}
 	}
-	
+	/*
 	public void postLoggedIn() {
 		for(String alias : connectedNodes)
 			postLoggedIn(alias, localNode.getAlias(), chm.getLocallyLoggedIn());
@@ -282,5 +234,5 @@ public class ConnectionManagerBean implements ConnectionManager {
 		DataSync rest = rtarget.proxy(DataSync.class);
 		rest.syncMessages(chm.getMessages());
 		client.close();
-	}
+	}*/
 }
