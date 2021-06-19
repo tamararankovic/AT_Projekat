@@ -23,10 +23,10 @@ public interface AgentEndpoint {
 	public Set<AgentType> getAllAgentTypes();
 	
 	@POST
-	@Path("/classes")
+	@Path("/classes/{nodeAlias}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public void updateAgentTypes(Set<AgentType> types, String nodeAlias);
+	public void updateAgentTypes(Set<AgentType> types, @PathParam("nodeAlias") String nodeAlias);
 	
 	@GET
 	@Path("/running")
