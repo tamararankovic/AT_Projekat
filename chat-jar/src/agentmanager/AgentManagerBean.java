@@ -30,8 +30,6 @@ import websocket.AgentTypeSocket;
 @Remote(AgentManagerRemote.class)
 @LocalBean
 public class AgentManagerBean implements AgentManagerRemote {
-
-	private static final long serialVersionUID = 1L;
 	
 	Set<Agent> runningAgents = new HashSet<Agent>();
 	Set<AID> otherNodeAgents = new HashSet<AID>();
@@ -57,7 +55,12 @@ public class AgentManagerBean implements AgentManagerRemote {
 			}
 		}
 		else if(otherNodeTypes.stream().anyMatch(t -> t.equals(type))) {
-			startAgentOnAnotherNode(type, name);
+			new Thread(new Runnable() {
+				@Override
+				public void run() {
+					startAgentOnAnotherNode(type, name);
+				}
+			}).start();
 		}
 	}
 
@@ -69,7 +72,12 @@ public class AgentManagerBean implements AgentManagerRemote {
 			updateViaSocket();
 		}
 		else if(otherNodeAgents.stream().anyMatch(a -> a.equals(aid))) {
-			stopAgentOnAnotherNode(aid);
+			new Thread(new Runnable() {
+				@Override
+				public void run() {
+					stopAgentOnAnotherNode(aid);
+				}
+			}).start();
 		}
 	}
 

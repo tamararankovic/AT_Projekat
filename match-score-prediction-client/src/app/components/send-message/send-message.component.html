@@ -1,13 +1,13 @@
 <mat-form-field appearance="fill" style="width: 100%;">
     <mat-label>Sender</mat-label>
     <mat-select [(value)]="sender">
-      <mat-option [value]="agent" *ngFor="let agent of agents">{{agent.name}} - {{agent.type.module}}@{{agent.type.name}}</mat-option>
+      <mat-option [value]="agent" *ngFor="let agent of agents">{{agent.name}} - {{agent.type.host}}@{{agent.type.module}}@{{agent.type.name}}</mat-option>
     </mat-select>
 </mat-form-field>
 <mat-form-field appearance="fill" style="width: 100%;">
     <mat-label>Receiver</mat-label>
     <mat-select [(value)]="receiver">
-      <mat-option [value]="agent" *ngFor="let agent of agents">{{agent.name}} - {{agent.type.module}}@{{agent.type.name}}</mat-option>
+      <mat-option [value]="agent" *ngFor="let agent of agents">{{agent.name}} - {{agent.type.host}}@{{agent.type.module}}@{{agent.type.name}}</mat-option>
     </mat-select>
 </mat-form-field>
 <mat-form-field appearance="fill" style="width: 100%;">
