@@ -89,7 +89,7 @@ public class AgentManagerBean implements AgentManagerRemote {
 	public Set<AgentType> getAgentTypes() {
 		Set<AgentType> types = new HashSet<AgentType>(otherNodeTypes);
 		types.addAll(getLocalAgentTypes());
-		return otherNodeTypes;
+		return types;
 	}
 	
 	private Set<AgentType> getLocalAgentTypes() {
