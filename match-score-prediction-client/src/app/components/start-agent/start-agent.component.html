@@ -3,7 +3,7 @@
     <mat-form-field appearance="fill" style="width: 100%;">
       <mat-label>Select agent type</mat-label>
       <mat-select [(value)]="type">
-        <mat-option [value]="t" *ngFor="let t of types">{{t.module}}@{{t.name}}</mat-option>
+        <mat-option [value]="t" *ngFor="let t of types">{{t.host}}@{{t.module}}@{{t.name}}</mat-option>
       </mat-select>
     </mat-form-field>
   </div>

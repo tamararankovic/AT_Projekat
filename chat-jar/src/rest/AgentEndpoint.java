@@ -35,10 +35,10 @@ public interface AgentEndpoint {
 	public Set<AID> getAllRunningAgents();
 	
 	@POST
-	@Path("/running")
+	@Path("/running/{nodeAlias}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public void updateRunningAgents(Set<AID> agents);
+	public void updateRunningAgents(Set<AID> agents, @PathParam("nodeAlias") String nodeAlias);
 	
 	@PUT
 	@Path("/running/{name}")

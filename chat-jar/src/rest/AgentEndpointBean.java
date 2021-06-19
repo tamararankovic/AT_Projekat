@@ -44,8 +44,8 @@ public class AgentEndpointBean implements AgentEndpoint {
 	}
 
 	@Override
-	public void updateRunningAgents(Set<AID> agents) {
-		agm.updateRunningAgents(agents);
+	public void updateRunningAgents(Set<AID> agents, String nodeAlias) {
+		agm.updateRunningAgents(agents, nodeAlias);
 	}
 
 }

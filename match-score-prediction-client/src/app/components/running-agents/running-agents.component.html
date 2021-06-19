@@ -1,6 +1,6 @@
 <mat-list role="list">
     <mat-list-item role="listitem" *ngFor="let agent of running">
-        {{agent.name}} - {{agent.type.module}}@{{agent.type.name}}
+        {{agent.name}} - {{agent.type.host}}@{{agent.type.module}}@{{agent.type.name}}
         <button mat-stroked-button (click)="stop(agent)" style="margin-left: 10px;">Stop</button>
     </mat-list-item>
 </mat-list>

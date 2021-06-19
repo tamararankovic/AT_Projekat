@@ -201,7 +201,7 @@ public class ConnectionManagerBean implements ConnectionManager {
 		Set<String> receivers = new HashSet<String>(acm.getConnectedNodes());
 		receivers.remove(nodeAlias);
 		postAgentsToAll(newAgents, receivers);
-		agm.updateRunningAgents(newAgents);
+		agm.updateRunningAgents(newAgents, nodeAlias);
 	}
 	
 	private Set<AgentType> getAgentTypes(String node) {
@@ -244,7 +244,7 @@ public class ConnectionManagerBean implements ConnectionManager {
 		ResteasyClient client = new ResteasyClientBuilder().build();
 		ResteasyWebTarget rtarget = client.target("http://" + nodeAlias + "/chat-war/rest/agents");
 		AgentEndpoint rest = rtarget.proxy(AgentEndpoint.class);
-		rest.updateRunningAgents(agents);
+		rest.updateRunningAgents(agents, nodeAlias);
 		client.close();
 	}
 	

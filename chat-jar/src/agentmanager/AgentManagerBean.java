@@ -1,8 +1,6 @@
 package agentmanager;
 
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -38,7 +36,7 @@ public class AgentManagerBean implements AgentManagerRemote {
 	Set<Agent> runningAgents = new HashSet<Agent>();
 	Set<AID> otherNodeAgents = new HashSet<AID>();
 	
-	Map<String, Set<AgentType>> otherNodeTypes = new HashMap<String, Set<AgentType>>();
+	Set<AgentType> otherNodeTypes = new HashSet<AgentType>();
 	
 	@EJB AgentCenterRemote acm;
 	@EJB AgentSocket agentSocket;
@@ -53,18 +51,26 @@ public class AgentManagerBean implements AgentManagerRemote {
 				agent.init(new AID(name, acm.getHost(), type));
 				if(runningAgents.stream().noneMatch(a -> a.getAID().equals(agent.getAID()))) {
 					runningAgents.add(agent);
-					instructNodesToUpdateAgents();
+					instructNodesToUpdateAgents(agent.getAID().getHost().getAlias());
 					updateViaSocket();
 				}
 			}
+		}
+		else if(otherNodeTypes.stream().anyMatch(t -> t.equals(type))) {
+			startAgentOnAnotherNode(type, name);
 		}
 	}
 
 	@Override
 	public void stopAgent(AID aid) {
-		runningAgents.removeIf(a -> a.getAID().equals(aid));
-		instructNodesToUpdateAgents();
-		updateViaSocket();
+		boolean deleted = runningAgents.removeIf(a -> a.getAID().equals(aid));
+		if(deleted) {
+			instructNodesToUpdateAgents(aid.getHost().getAlias());
+			updateViaSocket();
+		}
+		else if(otherNodeAgents.stream().anyMatch(a -> a.equals(aid))) {
+			stopAgentOnAnotherNode(aid);
+		}
 	}
 
 	@Override
@@ -81,26 +87,27 @@ public class AgentManagerBean implements AgentManagerRemote {
 
 	@Override
 	public Set<AgentType> getAgentTypes() {
-		Set<AgentType> types = getLocalAgentTypes();
-		for(Set<AgentType> otherTypes : otherNodeTypes.values())
-			types.addAll(otherTypes);
-		return types;
+		Set<AgentType> types = new HashSet<AgentType>(otherNodeTypes);
+		types.addAll(getLocalAgentTypes());
+		return otherNodeTypes;
 	}
 	
 	private Set<AgentType> getLocalAgentTypes() {
 		Set<AgentType> types = new HashSet<AgentType>();
-		types.add(new AgentType(UserAgent.class.getSimpleName(), JNDILookup.JNDIPathChat));
+		types.add(new AgentType(UserAgent.class.getSimpleName(), JNDILookup.JNDIPathChat, acm.getHost().getAlias()));
 		return types;
 	}
 
 	@Override
 	public void updateAgentTypes(Set<AgentType> types, String nodeAlias) {
-		otherNodeTypes.put(nodeAlias, types);
+		otherNodeTypes.removeIf(t -> t.getHost().equals(nodeAlias));
+		otherNodeTypes.addAll(types);
 		updateViaTypeSocket();
 	}
 
 	@Override
-	public void updateRunningAgents(Set<AID> agents) {
+	public void updateRunningAgents(Set<AID> agents, String nodeAlias) {
+		otherNodeAgents.removeIf(a -> a.getHost().getAlias().equals(nodeAlias));
 		otherNodeAgents.addAll(agents);
 		updateViaSocket();
 	}
@@ -113,18 +120,34 @@ public class AgentManagerBean implements AgentManagerRemote {
 	
 	@Override
 	public void deleteAgentTypes(String nodeAlias) {
-		otherNodeTypes.remove(nodeAlias);
+		otherNodeTypes.removeIf(t -> t.getHost().equals(nodeAlias));
 		updateViaTypeSocket();
 	}
 	
-	private void instructNodesToUpdateAgents() {
+	private void instructNodesToUpdateAgents(String nodeAlias) {
 		for(String node : acm.getConnectedNodes()) {
 			ResteasyClient client = new ResteasyClientBuilder().build();
 			ResteasyWebTarget rtarget = client.target("http://" + node + "/chat-war/rest/agents");
 			AgentEndpoint rest = rtarget.proxy(AgentEndpoint.class);
-			rest.updateRunningAgents(runningAgents.stream().map(a -> a.getAID()).collect(Collectors.toSet()));
+			rest.updateRunningAgents(runningAgents.stream().map(a -> a.getAID()).collect(Collectors.toSet()), nodeAlias);
 			client.close();
 		}
+	}
+	
+	private void startAgentOnAnotherNode(AgentType type, String name) {
+		ResteasyClient client = new ResteasyClientBuilder().build();
+		ResteasyWebTarget rtarget = client.target("http://" + type.getHost() + "/chat-war/rest/agents");
+		AgentEndpoint rest = rtarget.proxy(AgentEndpoint.class);
+		rest.startAgent(type, name);
+		client.close();
+	}
+	
+	private void stopAgentOnAnotherNode(AID aid) {
+		ResteasyClient client = new ResteasyClientBuilder().build();
+		ResteasyWebTarget rtarget = client.target("http://" + aid.getHost().getAlias() + "/chat-war/rest/agents");
+		AgentEndpoint rest = rtarget.proxy(AgentEndpoint.class);
+		rest.stopAgent(aid);
+		client.close();
 	}
 	
 	private void updateViaSocket() {
