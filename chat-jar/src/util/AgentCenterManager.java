@@ -8,8 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import javax.ejb.LocalBean;
-import javax.ejb.Stateless;
+import javax.ejb.Remote;
+import javax.ejb.Singleton;
+import javax.ejb.Startup;
 import javax.management.AttributeNotFoundException;
 import javax.management.InstanceNotFoundException;
 import javax.management.MBeanException;
@@ -21,37 +22,44 @@ import javax.management.ReflectionException;
 import connectionmanager.AgentCenter;
 import connectionmanager.ConnectionManager;
 
-@Stateless
-@LocalBean
-public class AgentCenterManager {
+@Singleton
+@Remote(AgentCenterRemote.class)
+@Startup
+public class AgentCenterManager implements AgentCenterRemote {
 
-	public AgentCenter host;
-	public String masterAlias;
-	public List<String> connectedNodes = new ArrayList<String>();
+	private static final long serialVersionUID = 1L;
 	
-	public AgentCenter getLocalNodeInfo() {
+	private AgentCenter host;
+	private String masterAlias;
+	private List<String> connectedNodes = new ArrayList<String>();
+	
+	@Override
+	public void setLocalNodeInfo() {
 		String nodeAddress = getNodeAddress();
 		String nodeAlias = getNodeAlias() + ":8080";
-		AgentCenter host = new AgentCenter(nodeAddress, nodeAlias);
-		System.out.println("node alias: " + host.getAlias() + ", node address: " + 
-		host.getAddress());
-		return host;
+		this.host = new AgentCenter(nodeAddress, nodeAlias);;
+		System.out.println("node alias: " + this.host.getAlias() + ", node address: " + 
+		this.host.getAddress());
 	}
 	
-	public String getMasterAlias() {
+	@Override
+	public void setMasterAlias() {
 		try {
 			File f = ResourceLoader.getFile(ConnectionManager.class, "", "connection.properties");
 			FileInputStream fileInput = new FileInputStream(f);
 			Properties properties = new Properties();
 			properties.load(fileInput);
 			fileInput.close();
-			String masterAlias = properties.getProperty("master");
+			masterAlias = properties.getProperty("master");
 			System.out.println("Master alias: " + masterAlias);
-			return masterAlias;
 		} catch (IOException e) {
 			e.printStackTrace();
-			return null;
 		}
+	}
+	
+	@Override
+	public String getMasterAlias() {
+		return masterAlias;
 	}
 	
 	private String getNodeAddress() {
@@ -68,5 +76,30 @@ public class AgentCenterManager {
 	
 	private String getNodeAlias() {
 		return System.getProperty("jboss.node.name");
+	}
+
+	@Override
+	public AgentCenter getHost() {
+		return host;
+	}
+
+	@Override
+	public List<String> getConnectedNodes() {
+		return connectedNodes;
+	}
+
+	@Override
+	public void addConnectedNode(String node) {
+		connectedNodes.add(node);
+	}
+
+	@Override
+	public void removeConnectedNode(String node) {
+		connectedNodes.remove(node);
+	}
+
+	@Override
+	public void setConnectedNodes(List<String> nodes) {
+		connectedNodes = nodes;
 	}
 }

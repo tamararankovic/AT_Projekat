@@ -23,7 +23,7 @@ import agents.Agent;
 import agents.AgentType;
 import agents.UserAgent;
 import rest.AgentEndpoint;
-import util.AgentCenterManager;
+import util.AgentCenterRemote;
 import util.JNDILookup;
 import websocket.AgentSocket;
 import websocket.AgentTypeSocket;
@@ -40,7 +40,7 @@ public class AgentManagerBean implements AgentManagerRemote {
 	
 	Map<String, Set<AgentType>> otherNodeTypes = new HashMap<String, Set<AgentType>>();
 	
-	@EJB AgentCenterManager acm;
+	@EJB AgentCenterRemote acm;
 	@EJB AgentSocket agentSocket;
 	@EJB AgentTypeSocket typeSocket;
 	
@@ -50,7 +50,7 @@ public class AgentManagerBean implements AgentManagerRemote {
 			Agent agent = (Agent) JNDILookup.lookUp(type.getModule() + type.getName() + "!"
 									+ Agent.class.getName() + "?stateful", Agent.class);
 			if(agent != null) {
-				agent.init(new AID(name, acm.getLocalNodeInfo(), type));
+				agent.init(new AID(name, acm.getHost(), type));
 				if(runningAgents.stream().noneMatch(a -> a.getAID().equals(agent.getAID()))) {
 					runningAgents.add(agent);
 					instructNodesToUpdateAgents();
@@ -118,7 +118,7 @@ public class AgentManagerBean implements AgentManagerRemote {
 	}
 	
 	private void instructNodesToUpdateAgents() {
-		for(String node : acm.connectedNodes) {
+		for(String node : acm.getConnectedNodes()) {
 			ResteasyClient client = new ResteasyClientBuilder().build();
 			ResteasyWebTarget rtarget = client.target("http://" + node + "/chat-war/rest/agents");
 			AgentEndpoint rest = rtarget.proxy(AgentEndpoint.class);

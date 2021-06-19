@@ -16,7 +16,7 @@ import agentmanager.AgentManagerRemote;
 import agents.AID;
 import agents.Agent;
 import rest.MessageEndpoint;
-import util.AgentCenterManager;
+import util.AgentCenterRemote;
 import websocket.Logger;
 
 @MessageDriven(activationConfig = {
@@ -24,7 +24,7 @@ import websocket.Logger;
 		@ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/queue/chat-queue") })
 public class MDBConsumer implements MessageListener {
 
-	@EJB AgentCenterManager acm;
+	@EJB private AgentCenterRemote acm;
 	@EJB private AgentManagerRemote agentManager;
 	@EJB private Logger logger;
 	
@@ -33,7 +33,7 @@ public class MDBConsumer implements MessageListener {
 		try {
 			ACLMessage agentMessage = (ACLMessage) ((ObjectMessage) message).getObject();
 			for(AID aid : agentMessage.getReceivers()) {
-				if(!aid.getHost().getAlias().equals(acm.host.getAlias())) {
+				if(!aid.getHost().getAlias().equals(acm.getHost().getAlias())) {
 					forwardMessage(agentMessage, aid.getHost().getAlias());
 					return;
 				}
