@@ -4,6 +4,7 @@ import java.util.Set;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -21,11 +22,23 @@ public interface AgentEndpoint {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Set<AgentType> getAllAgentTypes();
 	
+	@POST
+	@Path("/classes")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public void updateAgentTypes(Set<AgentType> types, String nodeAlias);
+	
 	@GET
 	@Path("/running")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	public Set<AID> getAllRunningAgents();
+	
+	@POST
+	@Path("/running")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public void updateRunningAgents(Set<AID> agents);
 	
 	@PUT
 	@Path("/running/{name}")

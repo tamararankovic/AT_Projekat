@@ -4,9 +4,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
-import javax.ejb.EJB;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.management.AttributeNotFoundException;
@@ -24,7 +25,9 @@ import connectionmanager.ConnectionManager;
 @LocalBean
 public class AgentCenterManager {
 
-	@EJB ConnectionManager cm;
+	public AgentCenter host;
+	public String masterAlias;
+	public List<String> connectedNodes = new ArrayList<String>();
 	
 	public AgentCenter getLocalNodeInfo() {
 		String nodeAddress = getNodeAddress();

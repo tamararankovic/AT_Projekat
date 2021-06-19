@@ -18,4 +18,12 @@ public interface AgentManagerRemote extends Serializable {
 	public Set<AgentType> getAgentTypes();
 	
 	public Agent getRunningAgentByAID(AID aid);
+	
+	public void updateAgentTypes(Set<AgentType> types, String nodeAlias);
+	
+	public void updateRunningAgents(Set<AID> agents);
+	
+	public void deleteAgentTypes(String nodeAlias);
+	
+	public void deleteRunningAgents(String nodeAlias);
 }

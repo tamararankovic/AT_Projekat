@@ -38,4 +38,14 @@ public class AgentEndpointBean implements AgentEndpoint {
 		agm.stopAgent(aid);
 	}
 
+	@Override
+	public void updateAgentTypes(Set<AgentType> types, String nodeAlias) {
+		agm.updateAgentTypes(types, nodeAlias);
+	}
+
+	@Override
+	public void updateRunningAgents(Set<AID> agents) {
+		agm.updateRunningAgents(agents);
+	}
+
 }
