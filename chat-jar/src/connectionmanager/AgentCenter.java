@@ -36,8 +36,7 @@ public class AgentCenter implements Serializable {
 	@Override
 	public boolean equals(Object obj) {
 		AgentCenter center = (AgentCenter)obj;
-		return center.address.equals(address) && center.alias.equals(alias);
+		return center.alias.equals(alias);
 	}
-	
 	
 }

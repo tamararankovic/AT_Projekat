@@ -1,6 +1,8 @@
 package agents;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.ejb.EJB;
 import javax.ejb.Remote;
@@ -9,10 +11,15 @@ import javax.ejb.Stateful;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import agentmanager.AgentManagerRemote;
 import chatmanager.ChatManagerRemote;
+import connectionmanager.AgentCenter;
 import messagemanager.ACLMessage;
+import messagemanager.MessageManagerRemote;
+import messagemanager.Performative;
 import model.Message;
 import model.User;
+import util.AgentCenterRemote;
 import websocket.Logger;
 
 @Stateful
@@ -22,6 +29,9 @@ public class UserAgent extends BaseAgent {
 	private static final long serialVersionUID = 1L;
 	
 	@EJB ChatManagerRemote chm;
+	@EJB AgentManagerRemote agm;
+	@EJB AgentCenterRemote acm;
+	@EJB MessageManagerRemote msm;
 	@EJB Logger logger;
 	
 	@Override
@@ -74,21 +84,31 @@ public class UserAgent extends BaseAgent {
 			getAllMessages(username);
 			break;
 		}
+		case PERFORMED: {
+			AID agentToStop = message.getSender();
+			agm.stopAgent(agentToStop);
+			break;
+		}
+		default: return;
 		}
 	}
 	
 	private void logIn(String username, String password) {
 		boolean success = chm.logIn(username, password);
-		if(success)
+		if(success) {
 			logger.send("User with username " + username + " successfully logged in");
+			informHelperAgents(Performative.ADD_LOGGED_IN, new User(username, password));
+		}
 		else
 			logger.send("User with username " + username + " doesn't exist or the password is incorrect");
 	}
 	
 	private void register(String username, String password) {
 		boolean success = chm.register(username, password);
-		if(success)
+		if(success) {
 			logger.send("User with username " + username + " successfully registered");
+			informHelperAgents(Performative.ADD_REGISTERED, new User(username, password));
+		}
 		else
 			logger.send("User with username " + username + " already exists");
 	}
@@ -97,6 +117,7 @@ public class UserAgent extends BaseAgent {
 		if(loggedIn(username)) {
 			chm.logOut(username);
 			logger.send("User with username " + username + " successfully logged out");
+			informHelperAgents(Performative.REMOVE_LOGGED_IN, new User(username, ""));
 		}
 	}
 	
@@ -133,6 +154,7 @@ public class UserAgent extends BaseAgent {
 				return;
 			}
 			Message message = chm.saveMessage(sender, receiver, subject, content);
+			informHelperAgents(Performative.ADD_MESSAGE, message);
 			ObjectMapper mapper = new ObjectMapper();
 			try {
 				String messageJSON = mapper.writeValueAsString(message);
@@ -168,5 +190,34 @@ public class UserAgent extends BaseAgent {
 			return false;
 		}
 		return true;
+	}
+	
+	private void informHelperAgents(Performative performative, Object obj) {
+		ACLMessage message = new ACLMessage();
+		message.setSender(aid);
+		message.setPerformative(performative);
+		message.setContentObj(obj);
+		message.setReceivers(getHelperAgents());
+		msm.post(message);
+	}
+	
+	private Set<AID> getHelperAgents() {
+		Set<AID> agents = new HashSet<AID>();
+		for(String node : acm.getConnectedNodes()) {
+			AgentType type = getAgentType(node, UserHelperAgent.class.getSimpleName());
+			if(type != null) {
+				agm.startAgent(type, "helper");
+				AgentCenter center = new AgentCenter("", node);
+				AID aid = new AID("helper", center, type);
+				agents.add(aid);
+			}
+		}
+		return agents;
+	}
+	
+	private AgentType getAgentType(String node, String name) {
+		return agm.getAgentTypes().stream()
+				.filter(t -> t.getName().equals(UserHelperAgent.class.getSimpleName())
+						&& t.getHost().equals(node)).findFirst().orElse(null);
 	}
 }

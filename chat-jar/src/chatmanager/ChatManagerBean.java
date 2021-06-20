@@ -108,4 +108,24 @@ public class ChatManagerBean implements ChatManagerRemote {
 	private boolean existsRegistered(String username, String password) {
 		return registeredUsers.stream().anyMatch(u -> u.getUsername().equals(username) && u.getPassword().equals(password));
 	}
+
+	@Override
+	public void addMessage(Message message) {
+		messages.add(message);
+	}
+
+	@Override
+	public void addRegistered(User user) {
+		registeredUsers.add(user);
+	}
+
+	@Override
+	public void addLoggedIn(User user) {
+		loggedInUsers.add(user);
+	}
+
+	@Override
+	public void removeLoggedIn(User user) {
+		loggedInUsers.removeIf(u -> u.getUsername().equals(user.getUsername()));
+	}
 }

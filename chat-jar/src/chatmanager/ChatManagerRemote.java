@@ -27,4 +27,12 @@ public interface ChatManagerRemote {
 	public boolean existsLoggedIn(String username);
 	
 	public boolean existsRegistered(String username);
+	
+	public void addMessage(Message message);
+	
+	public void addRegistered(User user);
+	
+	public void addLoggedIn(User user);
+	
+	public void removeLoggedIn(User user);
 }
