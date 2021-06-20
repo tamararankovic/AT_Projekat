@@ -1,0 +1,20 @@
+<h2 style="text-align: center; margin-top: 50px; margin-bottom: 100px;">
+    Predict match outcome
+</h2>
+<div style="width: 60%; margin-left: 20%; padding: 20px;" class="mat-elevation-z8">
+    <div *ngIf="!predicted">
+        <mat-form-field style="width: 100%;">
+            <mat-label>Team 1</mat-label>
+            <input matInput id="t1" #name1 = "ngModel" name="t1" [(ngModel)] = "team1"/>
+        </mat-form-field>
+        <mat-form-field style="width: 100%;">
+            <mat-label>Team 2</mat-label>
+            <input matInput id="t2" #name2 = "ngModel" name="t2" [(ngModel)] = "team2"/>
+        </mat-form-field>
+        <button mat-raised-button color="primary" (click)="predict()" [disabled]="team1.length == 0 || team2.length == 0" style="margin-left: 30%; width: 40%; height: 50px;">Predict</button>
+    </div>
+    <div *ngIf="predicted">
+        <p style="font-size: large; text-align: center; margin: 20px;">{{prediction}}</p>
+        <button mat-raised-button color="primary" (click)="reset()" style="margin-left: 30%; width: 40%; height: 50px;">Reset</button>
+    </div>
+</div>

@@ -19,6 +19,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import agents.AID;
 import agents.Agent;
 import agents.AgentType;
+import agents.CollectorAgent;
+import agents.MasterAgent;
+import agents.PredictorAgent;
 import agents.UserAgent;
 import agents.UserHelperAgent;
 import rest.AgentEndpoint;
@@ -105,6 +108,9 @@ public class AgentManagerBean implements AgentManagerRemote {
 		Set<AgentType> types = new HashSet<AgentType>();
 		types.add(new AgentType(UserAgent.class.getSimpleName(), JNDILookup.JNDIPathChat, acm.getHost().getAlias()));
 		types.add(new AgentType(UserHelperAgent.class.getSimpleName(), JNDILookup.JNDIPathChat, acm.getHost().getAlias()));
+		types.add(new AgentType(MasterAgent.class.getSimpleName(), JNDILookup.JNDIPathChat, acm.getHost().getAlias()));
+		types.add(new AgentType(CollectorAgent.class.getSimpleName(), JNDILookup.JNDIPathChat, acm.getHost().getAlias()));
+		types.add(new AgentType(PredictorAgent.class.getSimpleName(), JNDILookup.JNDIPathChat, acm.getHost().getAlias()));
 		return types;
 	}
 

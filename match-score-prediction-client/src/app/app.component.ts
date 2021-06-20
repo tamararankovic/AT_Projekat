@@ -17,16 +17,4 @@ export class AppComponent {
 
   constructor() {
   }
-
-  toggleStartAgent() {
-    this.showStartAgent = !this.showStartAgent
-    if(this.showStartAgent)
-      this.showSendMessage = false
-  }
-
-  toggleSendMessage() {
-    this.showSendMessage = !this.showSendMessage
-    if(this.showSendMessage)
-      this.showStartAgent = false
-  }
 }

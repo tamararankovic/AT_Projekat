@@ -1,0 +1,37 @@
+<div style="width: 100%; height: max-content;">
+    <div style="width: 43%; margin-left: 5%; display: inline-block;">
+        <h2 style="text-align: center; margin-top: 20px; margin-bottom: 20px;">Agent types</h2>
+        <div style="margin-left: 10%; width: 80%; height: 200px; overflow-y:scroll;" class="mat-elevation-z8">
+            <app-agent-types></app-agent-types>
+        </div>
+    </div>
+    <div style="width: 43%; margin-right: 5%; display: inline-block; float: right;">
+        <h2 style="text-align: center; margin-top: 20px; margin-bottom: 20px;">Running agents</h2>
+        <div style="margin-left: 10%; width: 80%; height: 200px; overflow-y:scroll;" class="mat-elevation-z8">
+            <app-running-agents></app-running-agents>
+        </div>
+    </div>
+</div>
+
+<div style="margin-left: 10%; width: 80%; margin-top: 20px;">
+    <button mat-raised-button color="primary" *ngIf="!showStartAgent" style="width: 40%; height: 50px;" (click)="toggleStartAgent()">Start agent - show</button>
+    <button mat-raised-button color="primary" *ngIf="showStartAgent" style="width: 40%; height: 50px;" (click)="toggleStartAgent()">Start agent - hide</button>
+
+    <button mat-raised-button color="primary" *ngIf="!showSendMessage" style="margin-left: 20%; width: 40%; height: 50px;" (click)="toggleSendMessage()">Send ACL message - show</button>
+    <button mat-raised-button color="primary" *ngIf="showSendMessage" style="margin-left: 20%; width: 40%; height: 50px;" (click)="toggleSendMessage()">Send ACL message - hide</button>
+</div>
+
+<div style="margin-left: 30%; width: 40%;" *ngIf="showStartAgent">
+    <h2 style="text-align: center; margin-top: 20px; margin-bottom: 20px;">Start an agent</h2>
+    <app-start-agent></app-start-agent>
+</div>
+
+<div style="margin-left: 30%; width: 40%;" *ngIf="showSendMessage">
+    <h2 style="text-align: center; margin-top: 20px; margin-bottom: 20px;">Send an ACL message</h2>
+    <app-send-message></app-send-message>
+</div>
+
+<h2 style="text-align: center; margin-top: 20px; margin-bottom: 20px;">Console</h2>
+<div style="margin-left: 10%; width: 80%; margin-bottom: 20px;">
+    <app-console></app-console>
+</div>

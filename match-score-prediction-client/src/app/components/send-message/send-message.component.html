@@ -10,13 +10,19 @@
       <mat-option [value]="agent" *ngFor="let agent of agents">{{agent.name}} - {{agent.type.host}}@{{agent.type.module}}@{{agent.type.name}}</mat-option>
     </mat-select>
 </mat-form-field>
+<mat-form-field appearance="fill" style="width: 100%;" *ngIf="performative === 'PREDICT' || performative === 'COLLECT'">
+  <mat-label>Reply to</mat-label>
+  <mat-select [(value)]="replyTo">
+    <mat-option [value]="agent" *ngFor="let agent of agents">{{agent.name}} - {{agent.type.host}}@{{agent.type.module}}@{{agent.type.name}}</mat-option>
+  </mat-select>
+</mat-form-field>
 <mat-form-field appearance="fill" style="width: 100%;">
     <mat-label>Performative</mat-label>
     <mat-select [(value)]="performative">
       <mat-option [value]="p" *ngFor="let p of performatives">{{p}}</mat-option>
     </mat-select>
 </mat-form-field>
-<mat-form-field style="width: 100%;" *ngIf="performative != 'SEND_MESSAGE_ALL' && performative != 'SEND_MESSAGE_USER' && performative != 'ADD_MESSAGE' && performative != 'PERFORMED' && performatives.includes(performative)">
+<mat-form-field style="width: 100%;" *ngIf="performative != 'SEND_MESSAGE_ALL' && performative != 'SEND_MESSAGE_USER' && performative != 'ADD_MESSAGE' && performative != 'PERFORMED' && performative != 'DISPLAY' && performative != 'PREDICT' && performative != 'COLLECT' && performatives.includes(performative)">
     <mat-label>Username</mat-label>
     <input matInput id="user" #name = "ngModel" name="c1" [(ngModel)] = "username"/>
 </mat-form-field>
@@ -36,8 +42,16 @@
   <mat-label>Subject</mat-label>
   <input matInput id="sub" #name5 = "ngModel" name="c5" [(ngModel)] = "subject"/>
 </mat-form-field>
-<mat-form-field style="width: 100%;" *ngIf="performative === 'SEND_MESSAGE_ALL' || performative === 'SEND_MESSAGE_USER' || performative === 'ADD_MESSAGE'">
+<mat-form-field style="width: 100%;" *ngIf="performative === 'SEND_MESSAGE_ALL' || performative === 'SEND_MESSAGE_USER' || performative === 'ADD_MESSAGE' || performative === 'DISPLAY'">
   <mat-label>Content</mat-label>
   <input matInput id="con" #name6 = "ngModel" name="c6" [(ngModel)] = "content"/>
+</mat-form-field>
+<mat-form-field style="width: 100%;" *ngIf="performative === 'COLLECT'">
+  <mat-label>Team 1</mat-label>
+  <input matInput id="t1" #name7 = "ngModel" name="c7" [(ngModel)] = "team1"/>
+</mat-form-field>
+<mat-form-field style="width: 100%;" *ngIf="performative === 'COLLECT'">
+  <mat-label>Team 2</mat-label>
+  <input matInput id="t2" #name8 = "ngModel" name="c8" [(ngModel)] = "team2"/>
 </mat-form-field>
 <button mat-stroked-button (click)="send()" style="margin-left: 40%; width: 20%;">Send</button>

@@ -23,6 +23,7 @@ export class SendMessageComponent implements OnInit {
 
   sender : AID;
   receiver : AID;
+  replyTo : AID;
   performative : string;
   username : string = '';
   password : string = '';
@@ -30,6 +31,8 @@ export class SendMessageComponent implements OnInit {
   receiverUsername : string = '';
   subject : string = '';
   content : string = '';
+  team1 : string = '';
+  team2 : string = '';
 
   liveData$ = this.agentSocket.messages$;
 
@@ -48,7 +51,7 @@ export class SendMessageComponent implements OnInit {
     if(this.agents.includes(this.sender) && this.agents.includes(this.receiver) && this.performatives.includes(this.performative)) {
       const userArgs = this.parseUserArgs();
       const content = this.getContent();
-      const message : ACLMessage = new ACLMessage(this.performative, this.sender, [this.receiver], null, content, null, userArgs, '', '', '', '', '', '', '', 0);
+      const message : ACLMessage = new ACLMessage(this.performative, this.sender, [this.receiver], this.getReplyTo(), content, null, userArgs, '', '', '', '', '', '', '', 0);
       this.messageService.sendMessage(message).subscribe()
     }
   }
@@ -76,6 +79,14 @@ export class SendMessageComponent implements OnInit {
       result['content'] = this.content
       return result
      }
+     if(['DISPLAY', 'PREDICT'].includes(this.performative)) {
+       return result;
+     }
+     if(this.performative === 'COLLECT') {
+       result['team1'] = this.team1
+       result['team2'] = this.team2
+       return result;
+     }
      else {
       result['username'] = this.username
       return result;
@@ -83,6 +94,10 @@ export class SendMessageComponent implements OnInit {
   }
 
   getContent() {
+    if(this.performative === 'DISPLAY')
+      return this.content
+    if(this.performative === 'PREDICT')
+      return '[]'
     var result : Object = {}
     if(['ADD_REGISTERED', 'ADD_LOGGED_IN', 'REMOVE_LOGGED_IN'].includes(this.performative)) {
       result['username'] = this.username
@@ -102,6 +117,13 @@ export class SendMessageComponent implements OnInit {
       result['content'] = this.content
     }
     return JSON.stringify(result);
+  }
+
+  getReplyTo() {
+    if(['COLLECT', 'PREDICT'].includes(this.performative)) 
+      return this.replyTo
+    else
+      return null
   }
 
   handleMessage(msg : string) {

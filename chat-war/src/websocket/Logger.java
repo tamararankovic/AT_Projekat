@@ -19,7 +19,7 @@ import messagemanager.ACLMessage;
 @LocalBean
 public class Logger {
 
-private Set<Session> sessions = new HashSet<Session>();
+	private Set<Session> sessions = new HashSet<Session>();
 	
 	@OnOpen
 	public void onOpen(Session session) {

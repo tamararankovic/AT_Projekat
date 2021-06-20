@@ -17,6 +17,8 @@ import {MatSelectModule} from '@angular/material/select';
 import {MatInputModule} from '@angular/material/input';
 import {MatButtonModule} from '@angular/material/button'
 import { FormsModule } from '@angular/forms';
+import { HomeComponent } from './components/home/home.component';
+import { PredictionComponent } from './components/prediction/prediction.component';
 
 @NgModule({
   declarations: [
@@ -25,7 +27,9 @@ import { FormsModule } from '@angular/forms';
     StartAgentComponent,
     AgentTypesComponent,
     RunningAgentsComponent,
-    SendMessageComponent
+    SendMessageComponent,
+    HomeComponent,
+    PredictionComponent
   ],
   imports: [
     BrowserModule,
