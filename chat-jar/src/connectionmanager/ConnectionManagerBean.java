@@ -33,9 +33,12 @@ public class ConnectionManagerBean implements ConnectionManager {
 	@EJB AgentCenterRemote acm;
 	@EJB AgentManagerRemote agm;
 	
+	private String hostAlias;
+	
 	@PostConstruct
 	private void init() {
 		setLocalNodeInfo();
+		hostAlias = acm.getHost().getAlias();
 		if(!isMaster())
 			handshake();
 	}
@@ -98,12 +101,12 @@ public class ConnectionManagerBean implements ConnectionManager {
 				public void run() {
 					boolean pingSuccessful = pingNode(node);
 					if(!pingSuccessful) {
-						System.out.println("Node with alias: " + node + " not alive. Deleting..");
-						acm.removeConnectedNode(node);
+						System.out.println("Node with alias: " + node + " not alive.");
+						deleteNode(node);
+						instructNodesToDeleteNode(node);
 						try {
 							instructNodeToDeleteNode(acm.getHost().getAlias(), node);
 						} catch (Exception e) { }
-						instructNodesToDeleteNode(node);
 					}
 				}
 			}).start();;
@@ -135,7 +138,7 @@ public class ConnectionManagerBean implements ConnectionManager {
 	
 	@PreDestroy
 	private void shutDown() {
-		instructNodesToDeleteNode(acm.getHost().getAlias());
+		instructNodesToDeleteNode(hostAlias);
 	}
 	
 	private void instructNodeToDeleteNode(String nodeAlias, String receiver) {
