@@ -176,7 +176,7 @@ public class AgentManagerBean implements AgentManagerRemote {
 	    	Set<AgentType> types = getAgentTypes();
 			ObjectMapper mapper = new ObjectMapper();
 			String typesJSON = mapper.writeValueAsString(types);
-			agentSocket.send(typesJSON);
+			typeSocket.send(typesJSON);
 		} catch (JsonProcessingException e) {
 			e.printStackTrace();
 		}
