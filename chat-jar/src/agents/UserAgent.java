@@ -8,9 +8,6 @@ import javax.ejb.EJB;
 import javax.ejb.Remote;
 import javax.ejb.Stateful;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import agentmanager.AgentManagerRemote;
 import chatmanager.ChatManagerRemote;
 import connectionmanager.AgentCenter;
@@ -124,26 +121,14 @@ public class UserAgent extends BaseAgent {
 	private void getLoggedIn(String username) {
 		if(loggedIn(username)) {
 			List<User> users = chm.getLoggedIn();
-			ObjectMapper mapper = new ObjectMapper();
-			try {
-				String usersJSON = mapper.writeValueAsString(users);
-				logger.send("Logged in users: " + usersJSON);
-			} catch (JsonProcessingException e) {
-				e.printStackTrace();
-			}
+			logger.send("Logged in users: " + users);
 		}
 	}
 	
 	private void getRegistered(String username) {
 		if(loggedIn(username)) {
 			List<User> users = chm.getRegistered();
-			ObjectMapper mapper = new ObjectMapper();
-			try {
-				String usersJSON = mapper.writeValueAsString(users);
-				logger.send("Registered users: " + usersJSON);
-			} catch (JsonProcessingException e) {
-				e.printStackTrace();
-			}
+			logger.send("Registered users: " + users);
 		}
 	}
 	
@@ -155,13 +140,7 @@ public class UserAgent extends BaseAgent {
 			}
 			Message message = chm.saveMessage(sender, receiver, subject, content);
 			informHelperAgents(Performative.ADD_MESSAGE, message);
-			ObjectMapper mapper = new ObjectMapper();
-			try {
-				String messageJSON = mapper.writeValueAsString(message);
-				logger.send("Message: " + messageJSON + " sent");
-			} catch (JsonProcessingException e) {
-				e.printStackTrace();
-			}
+			logger.send("Message: " + message + " sent");
 		}
 	}
 	
@@ -174,13 +153,7 @@ public class UserAgent extends BaseAgent {
 	private void getAllMessages(String username) {
 		if(loggedIn(username)) {
 			List<Message> messages = chm.getMessages(username);
-			ObjectMapper mapper = new ObjectMapper();
-			try {
-				String messagesJSON = mapper.writeValueAsString(messages);
-				logger.send("Messages for user with username " + username + ": " + messagesJSON);
-			} catch (JsonProcessingException e) {
-				e.printStackTrace();
-			}
+			logger.send("Messages for user with username " + username + ": " + messages);
 		}
 	}
 	
@@ -196,7 +169,7 @@ public class UserAgent extends BaseAgent {
 		ACLMessage message = new ACLMessage();
 		message.setSender(aid);
 		message.setPerformative(performative);
-		message.setContentObj(obj);
+		message.setContent(obj.toString());
 		message.setReceivers(getHelperAgents());
 		msm.post(message);
 	}

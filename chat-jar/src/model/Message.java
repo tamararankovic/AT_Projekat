@@ -3,6 +3,8 @@ package model;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -66,6 +68,11 @@ public class Message implements Serializable {
 	
 	@Override
 	public String toString() {
-		return "sender: " + sender.getUsername() + " receiver: " + receiver.getUsername() + " subject: " + subject + " content: " + content + " created: " + created;
+		ObjectMapper mapper = new ObjectMapper();
+		try {
+			return mapper.writeValueAsString(this);
+		} catch (JsonProcessingException e) {
+			return super.toString();
+		}
 	}
 }

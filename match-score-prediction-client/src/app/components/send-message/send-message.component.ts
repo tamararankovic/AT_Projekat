@@ -47,7 +47,8 @@ export class SendMessageComponent implements OnInit {
   public send() {
     if(this.agents.includes(this.sender) && this.agents.includes(this.receiver) && this.performatives.includes(this.performative)) {
       const userArgs = this.parseUserArgs();
-      const message : ACLMessage = new ACLMessage(this.performative, this.sender, [this.receiver], null, '', null, userArgs, '', '', '', '', '', '', '', 0);
+      const content = this.getContent();
+      const message : ACLMessage = new ACLMessage(this.performative, this.sender, [this.receiver], null, content, null, userArgs, '', '', '', '', '', '', '', 0);
       this.messageService.sendMessage(message).subscribe()
     }
   }
@@ -79,6 +80,28 @@ export class SendMessageComponent implements OnInit {
       result['username'] = this.username
       return result;
      }
+  }
+
+  getContent() {
+    var result : Object = {}
+    if(['ADD_REGISTERED', 'ADD_LOGGED_IN', 'REMOVE_LOGGED_IN'].includes(this.performative)) {
+      result['username'] = this.username
+      result['password'] = this.password
+    }
+    else if(['ADD_MESSAGE'].includes(this.performative)) {
+      var sender = {}
+      var receiver = {}
+      sender['username'] = this.senderUsername
+      sender['password'] = ''
+      receiver['username'] = this.receiverUsername
+      receiver['password'] = ''
+      result['sender'] = sender
+      result['receiver'] = receiver
+      result['created'] = new Date()
+      result['subject'] = this.subject
+      result['content'] = this.content
+    }
+    return JSON.stringify(result);
   }
 
   handleMessage(msg : string) {
