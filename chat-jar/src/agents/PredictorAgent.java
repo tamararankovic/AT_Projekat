@@ -64,7 +64,7 @@ public class PredictorAgent extends BaseAgent {
 		List<String> connectedNodes = acm.getConnectedNodes();
 		for(String nodeCollected : collectedMatches.keySet())
 			connectedNodes.removeIf(n -> n.equals(nodeCollected));
-		return connectedNodes.size() == 0;	
+		return connectedNodes.size() == 0 && collectedMatches.keySet().size() == acm.getConnectedNodes().size() + 1;	
 	}
 	
 	private void reply(AID receiver, String content) {
