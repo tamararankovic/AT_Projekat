@@ -37,6 +37,7 @@ public class PredictorAgent extends BaseAgent {
 				collectedMatches.put(message.getSender().getHost().getAlias(), getMatches(message.getContent()));
 				if(collected()) {
 					//TODO: implement prediction
+					collectedMatches = new HashMap<String, List<Match>>();
 					reply(message.getReplyTo(), "PREDICTION SUCCESSFUL!!");
 				}
 				break;
