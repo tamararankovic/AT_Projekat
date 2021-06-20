@@ -1,5 +1,8 @@
 package messagemanager;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import javax.ejb.ActivationConfigProperty;
 import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
@@ -33,6 +36,9 @@ public class MDBConsumer implements MessageListener {
 		try {
 			ACLMessage agentMessage = (ACLMessage) ((ObjectMessage) message).getObject();
 			for(AID aid : agentMessage.getReceivers()) {
+				Set<AID> receivers = new HashSet<AID>();
+				receivers.add(aid);
+				agentMessage.setReceivers(receivers);
 				if(!aid.getHost().getAlias().equals(acm.getHost().getAlias())) {
 					forwardMessage(agentMessage, aid.getHost().getAlias());
 					return;
