@@ -52,22 +52,26 @@ public class UserHelperAgent extends BaseAgent {
 	
 	private void addMessage(ACLMessage message) {
 		Message msg = (Message)message.getContentObj();
-		chm.addMessage(msg);
+		if(msg != null)
+			chm.addMessage(msg);
 	}
 	
 	private void addRegistered(ACLMessage message) {
 		User user = (User)message.getContentObj();
-		chm.addRegistered(user);
+		if(user != null)
+			chm.addRegistered(user);
 	}
 	
 	private void addLoggedIn(ACLMessage message) {
 		User user = (User)message.getContentObj();
-		chm.addLoggedIn(user);
+		if(user != null)
+			chm.addLoggedIn(user);
 	}
 	
 	private void removeLoggedIn(ACLMessage message) {
 		User user = (User)message.getContentObj();
-		chm.removeLoggedIn(user);
+		if(user != null)
+			chm.removeLoggedIn(user);
 	}
 	
 	private void report(AID receiver) {
@@ -77,6 +81,7 @@ public class UserHelperAgent extends BaseAgent {
 		receivers.add(receiver);
 		message.setReceivers(receivers);
 		message.setPerformative(Performative.PERFORMED);
+		message.setContentObj(new User("zoka", "zoka"));
 		msm.post(message);
 	}
 

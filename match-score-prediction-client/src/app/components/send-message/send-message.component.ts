@@ -46,13 +46,17 @@ export class SendMessageComponent implements OnInit {
 
   public send() {
     if(this.agents.includes(this.sender) && this.agents.includes(this.receiver) && this.performatives.includes(this.performative)) {
-      const message : ACLMessage = new ACLMessage(this.performative, this.sender, [this.receiver], null, '', null, this.parseUserArgs(), '', '', '', '', '', '', '', 0);
+      const userArgs = this.parseUserArgs();
+      const message : ACLMessage = new ACLMessage(this.performative, this.sender, [this.receiver], null, '', null, userArgs, '', '', '', '', '', '', '', 0);
       this.messageService.sendMessage(message).subscribe()
     }
   }
 
   parseUserArgs() {
     var result : Object = {}
+    if(['ADD_MESSAGE', 'ADD_REGISTERED', 'ADD_LOGGED_IN', 'REMOVE_LOGGED_IN', 'PERFORMED'].includes(this.performative)) {
+      return result;
+    }
     if(this.performative === 'LOG_IN' || this.performative === 'REGISTER') {
       result['username'] = this.username
       result['password'] = this.password
