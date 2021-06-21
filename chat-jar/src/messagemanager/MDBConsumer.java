@@ -41,12 +41,13 @@ public class MDBConsumer implements MessageListener {
 				agentMessage.setReceivers(receivers);
 				if(!aid.getHost().getAlias().equals(acm.getHost().getAlias())) {
 					forwardMessage(agentMessage, aid.getHost().getAlias());
-					return;
 				}
-				Agent agent = agentManager.getRunningAgentByAID(aid);
-				if (agent != null) {
-					log(agentMessage);
-					agent.handleMessage(agentMessage);
+				else {
+					Agent agent = agentManager.getRunningAgentByAID(aid);
+					if (agent != null) {
+						log(agentMessage);
+						agent.handleMessage(agentMessage);
+					}
 				}
 			}
 		} catch (JMSException e) {

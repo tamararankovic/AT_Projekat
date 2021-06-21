@@ -1,1 +1,12 @@
-[{"team1":"crvena zvezda", "team2":"partizan", "date":"2012-04-21 00:00:00", "winner":"partizan"}]
+[
+{"team1":"crvena zvezda", "team2":"partizan", "date":"2012-04-21 00:00:00", "winner":"partizan"},
+{"team1":"crvena zvezda", "team2":"partizan", "date":"2012-05-21 00:00:00", "winner":"partizan"},
+{"team1":"crvena zvezda", "team2":"partizan", "date":"2012-06-21 00:00:00", "winner":"crvena zvezda"},
+{"team1":"crvena zvezda", "team2":"partizan", "date":"2020-04-21 00:00:00", "winner":"crvena zvezda"},
+{"team1":"crvena zvezda", "team2":"partizan", "date":"2021-03-21 00:00:00", "winner":"crvena zvezda"},
+{"team1":"radnicki", "team2":"partizan", "date":"2012-04-21 00:00:00", "winner":"partizan"},
+{"team1":"radnicki", "team2":"partizan", "date":"2012-05-21 00:00:00", "winner":"partizan"},
+{"team1":"radnicki", "team2":"partizan", "date":"2012-06-21 00:00:00", "winner":"partizan"},
+{"team1":"radnicki", "team2":"partizan", "date":"2012-07-21 00:00:00", "winner":"partizan"},
+{"team1":"radnicki", "team2":"partizan", "date":"2012-08-21 00:00:00", "winner":"partizan"}
+]

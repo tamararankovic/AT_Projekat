@@ -1,6 +1,8 @@
 package agents;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -11,6 +13,7 @@ import java.util.Set;
 import javax.ejb.EJB;
 import javax.ejb.Remote;
 import javax.ejb.Stateful;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import messagemanager.ACLMessage;
@@ -18,6 +21,7 @@ import messagemanager.MessageManagerRemote;
 import messagemanager.Performative;
 import model.Match;
 import util.AgentCenterRemote;
+import util.LinearRegression;
 
 @Stateful
 @Remote(Agent.class)
@@ -36,14 +40,38 @@ public class PredictorAgent extends BaseAgent {
 			case PREDICT: {
 				collectedMatches.put(message.getSender().getHost().getAlias(), getMatches(message.getContent()));
 				if(collected()) {
-					//TODO: implement prediction
+					List<Match> matches = new ArrayList<Match>();
+					for(List<Match> m : collectedMatches.values())
+						matches.addAll(m);
+					if(matches.size() >= 2) {
+						String winner = predict(matches);
+						reply(message.getReplyTo(), "The winner is " + winner);
+					}
+					else
+						reply(message.getReplyTo(), "Not enough data to predict the outcome");
 					collectedMatches = new HashMap<String, List<Match>>();
-					reply(message.getReplyTo(), "PREDICTION SUCCESSFUL!!");
 				}
 				break;
 			}
 			default: return;
 		}
+	}
+	
+	private String predict(List<Match> matches) {
+		List<Integer> x = new ArrayList<Integer>();
+		List<Integer> y = new ArrayList<Integer>();
+		String team1 = matches.get(0).getTeam1();
+		String team2 = matches.get(0).getTeam2();
+		for(Match match : matches) {
+			Long days = ChronoUnit.DAYS.between(match.getDate(), LocalDateTime.now());
+			x.add(days.intValue());
+			if(match.getWinner().equals(team1))
+				y.add(1);
+			else
+				y.add(0);
+		}
+		double prediction = LinearRegression.predictForValue(x, y, 0);
+		return prediction > 0.5 ? team1 : team2;
 	}
 
 	private List<Match> getMatches(String json) {
